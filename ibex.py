@@ -3,12 +3,15 @@ import sqlite3
 import time
 
 empresa_logada = None
+cliente_logado = None
 
+# 1
 def exibir_nome():
-    print('#################################')
+    print('####################')
     print('Ｂｅｍ ｖｉｎｄｏ ａｏ Ｉｂｅｘ！')
-    print('#################################')
+    print('####################')
 
+# 2
 def menu_principal():
     limpa_tela()
     exibir_nome()
@@ -17,7 +20,8 @@ def menu_principal():
     print('3. Cadastrar Empresa')
     print('4. Login Empresa')
     print('9. Sair')
-    
+
+# 3
 def menu_empresa():
     while True:
         limpa_tela()
@@ -37,22 +41,21 @@ def menu_empresa():
         else:
             print('Opção Invalida!')
             time.sleep(2)
-            
+
+# 4
 def menu_cliente():
     while True:
         limpa_tela()
         exibir_nome()
-        print('Menu do Cliente')
-        print('1. Ver produtos disponiveis')
-        print('2. Buscar Produtos')
+        print('Menu Cliente\n')
+        print('1. Ver Produtos disponiveis')
+        print('2. Buscar produtos')
         print('3. Ver empresas cadastradas')
-        print('4. Adicionar produto ao carrinho')
-        print('5. Ver carrinho')
-        print('6. Finalizar pedido')
-        print('7. Ver meus pedidos')
-        print('8. Atualizar meus dados')
+        print('4. Atualizar dados')
+        print('5. Adicionar produto ao carrinho')
+        print('6. Ver Carrinho')
         print('9. Sair')
-        opcao = int(input('Escolha uma opção:'))
+        opcao = int(input("Opcao:"))
         if opcao == 1:
             ver_produtos()
         elif opcao == 2:
@@ -70,7 +73,8 @@ def menu_cliente():
         else:
             print('Opção invalida!')
             time.sleep(2)
-            
+
+# 5
 def listar_produtos():
     limpa_tela()
     exibir_nome()
@@ -94,14 +98,15 @@ def listar_produtos():
     else:
         print('Nenhum Produto encontrado\n')
         input("Pressione ENTER para continuar...")
-    
+
+# 6
 def ver_produtos():
     limpa_tela()
     exibir_nome()
     print('Produtos disponiveis\n')
     con = sqlite3.connect('ibex.db')
     cursor = con.cursor()
-    cursor.execute('SELECT nome, marca, preco, quantidade, categoria FROM produtos ')
+    cursor.execute('SELECT nome, descricao, preco, quantidade, categoria FROM produtos ')
     produtos = cursor.fetchall()
     con.close()
     if produtos:
@@ -118,14 +123,15 @@ def ver_produtos():
         print('Nenhum Produto encontrado\n')
         input("Pressione ENTER para continuar...")
 
+# 7
 def busca_produto():
     limpa_tela()
     exibir_nome()
     print('Encontre o produto desejado\n')
-    busca = input('Digite o nome ou categoria do produto:')
+    busca = input('Digite o nome ou categoria do produtos:')
     con = sqlite3.connect("ibex.db")
     cursor = con.cursor()
-    sql = """SELECT nome, marca, preco, quantidade, categoria FROM produtos WHERE nome LIKE ? OR categoria LIKE ?"""
+    sql = """SELECT nome, descricao, preco, quantidade, categoria FROM produtos WHERE nome LIKE ? OR categoria LIKE ?"""
     cursor.execute(sql,(f'%{busca}%',f'%{busca}%'))
     resultado = cursor.fetchall()
     if resultado:
@@ -143,6 +149,7 @@ def busca_produto():
     con.close()
     input("Pressione ENTER para continuar...")
 
+# 8
 def ver_empresas():
     limpa_tela()
     exibir_nome()
@@ -164,54 +171,76 @@ def ver_empresas():
     con.close()
     input("Pressione ENTER para continuar...")
 
+# 9 
 def atualizar_cliente():
+    global cliente_logado
+    if cliente_logado is None:
+        print("Você precisa estar logado para atualizar seus dados.")
+        input("Pressione ENTER para voltar...")
+        return
+
     limpa_tela()
     exibir_nome()
     print('Atualizar dados\n')
-    login = input('Digite seu E-mail:')
-    senha = input('Digite sua Senha:')
+
     con = sqlite3.connect("ibex.db")
     cursor = con.cursor()
-    cursor.execute('SELECT nome FROM cliente WHERE login = ? AND senha = ?', (login, senha))
-    resultado = cursor.fetchall()
+    cursor.execute('SELECT nome FROM cliente WHERE login = ?', (cliente_logado,))
+    resultado = cursor.fetchone()
+
     if resultado:
-        for produto in resultado:
-            print(f'\nBem vindo, {resultado[1]}')
-            print('O que deseja atualizar?')
-            print('1. Nome')
-            print('2. E-mail')
-            print('3. Senha')
-            opcao = input('Escolha uma opção:')
-            if opcao == 1:
-                novo_nome = input('Novo nome:')
-                cursor.execute('UPDATE cliente SET nome = ?', (novo_nome))
-            elif opcao == 2:
-                novo_email = input('Novo nome:')
-                cursor.execute('UPDATE cliente SET nome = ?', (novo_email))
-            elif opcao == 3:
-                nova_senha = input('Novo nome:')
-                cursor.execute('UPDATE cliente SET nome = ?', (nova_senha))
-            else:
-                print('Opção Invalida')
-                con.close()
-                return
-            con.commit()
-            print('\nDados atualizados com sucesso!')
+        print(f'\nBem-vindo, {resultado[0]}')
+        print('O que deseja atualizar?')
+        print('1. Nome')
+        print('2. E-mail')
+        print('3. Senha')
+        print('4. Voltar')
+        opcao = int(input('Escolha uma opção: '))
+
+        if opcao == 1:
+            novo_nome = input('Novo nome: ')
+            cursor.execute('UPDATE cliente SET nome = ? WHERE login = ?', (novo_nome, cliente_logado))
+
+        elif opcao == 2:
+            novo_email = input('Novo e-mail: ')
+            cursor.execute('UPDATE cliente SET login = ? WHERE login = ?', (novo_email, cliente_logado))
+            cliente_logado = novo_email
+
+        elif opcao == 3:
+            nova_senha = input('Nova senha: ')
+            cursor.execute('UPDATE cliente SET senha = ? WHERE login = ?', (nova_senha, cliente_logado))
+
+        elif opcao == 4:
+            con.close()
+            return
+
+        else:
+            print('Opção inválida!')
+            con.close()
+            return
+
+        con.commit()
+        print('\nDados atualizados com sucesso!')
+
     else:
-        print('\nLogin ou senha incorretos')
+        print('\nErro: cliente não encontrado.')
+
     con.close()
     input("Pressione ENTER para continuar...")
-    
+
+# 10
 def limpa_tela():
     if os.name == 'nt':
         os.system("cls")
     else:
         os.system("clear")
 
+# 11
 def finalizando_app():
     os.system('cls')
     print('Saindo do app!\n')
 
+# 12
 def cad_empresa():
     limpa_tela()
     exibir_nome()
@@ -229,7 +258,9 @@ def cad_empresa():
     print('EMPRESA CADASTRADA COM SUCESSO!\n')
     input("Pressione ENTER para continuar...")
 
+# 13
 def login_empresa():
+    global empresa_logada
     limpa_tela()
     exibir_nome()
     print('Login Empresa\n')
@@ -243,7 +274,10 @@ def login_empresa():
     if resultado:
         senha_correta = resultado[0]
         if senha == senha_correta:
+            empresa_logada = login
             print("Login realizado com sucesso!\n")
+            input("Pressione ENTER para continuar...")
+            menu_empresa()
         else:
             print("Senha incorreta.")
     else:
@@ -251,7 +285,8 @@ def login_empresa():
 
     con.close()
     input("Pressione ENTER para continuar...")
-    
+
+# 14
 def cad_produto():
     global empresa_logada
     limpa_tela()
@@ -275,6 +310,7 @@ def cad_produto():
     print('PRODUTO CADASTRADO COM SUCESSO!\n')
     input("Pressione ENTER para continuar...")
 
+# 15
 def cad_cliente():
     limpa_tela()
     exibir_nome()
@@ -291,8 +327,9 @@ def cad_cliente():
     print('CADASTRADO COM SUCESSO!\n')
     input("Pressione ENTER para continuar...")
 
-
+# 16 
 def login_cliente():
+    global cliente_logado
     limpa_tela()
     exibir_nome()
     print('(Login do Cliente)\n')
@@ -306,22 +343,22 @@ def login_cliente():
     if resultado:
         senha_correta = resultado[0]
         if senha == senha_correta:
+            cliente_logado = login
             print('Senha Correta! Redirecionando...\n')
             time.sleep(2)
             limpa_tela()
             print("Login realizado com sucesso!\n")
+            menu_cliente()
         else:
             time.sleep(2)
             limpa_tela()
             print("\nSenha incorreta.\n")
-
     else:
         print("Usuário não encontrado.\n")
-
     con.close()
     input("Pressione ENTER para continuar...")
 
-
+# cod principal
 opcao = 1
 while (opcao!=9):
     menu_principal()
