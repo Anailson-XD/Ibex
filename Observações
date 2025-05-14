@@ -1,0 +1,35 @@
+- menu login(Feito)
+e-mail 
+senha
+
+- menu cadastro(Feito)
+Nome
+senha
+e-mail 
+
+- banco de dados
+- tabela clientes(Feito)
+Nome 
+senha 
+e-mail
+
+- tabela empresas(Feito)
+nome 
+cnpj
+localização
+telefone
+e-mail
+senha
+
+- tabela produto(Feito)
+Nome
+Valor
+Quantidade min/máx
+empresa
+
+-iniciar parte grafica(Pedro e Gabryel) #mais quem quiser pode ajudar 
+bibliotecas para estudar
+tkinter 
+PyQt5
+CustomTkinter
+
