@@ -4,12 +4,13 @@ import time
 
 empresa_logada = None
 cliente_logado = None
+carrinho = {}
 
 # 1
 def exibir_nome():
-    print('####################')
+    print('#################################')
     print('Ｂｅｍ ｖｉｎｄｏ ａｏ Ｉｂｅｘ！')
-    print('####################')
+    print('#################################')
 
 # 2
 def menu_principal():
@@ -21,7 +22,7 @@ def menu_principal():
     print('4. Login Empresa')
     print('9. Sair')
 
-# 3
+ # 3
 def menu_empresa():
     while True:
         limpa_tela()
@@ -35,14 +36,14 @@ def menu_empresa():
             time.sleep(2)
             cad_produto()
         elif opcao == 2:
+            time.sleep(2)
             listar_produtos()
         elif opcao == 3:
             break
         else:
             print('Opção Invalida!')
             time.sleep(2)
-
-# 4
+# 4        
 def menu_cliente():
     while True:
         limpa_tela()
@@ -54,26 +55,35 @@ def menu_cliente():
         print('4. Atualizar dados')
         print('5. Adicionar produto ao carrinho')
         print('6. Ver Carrinho')
+        print('7. Excluir produto do Carrinho')
         print('9. Sair')
         opcao = int(input("Opcao:"))
         if opcao == 1:
+            time.sleep(2)
             ver_produtos()
         elif opcao == 2:
+            time.sleep(2)
             busca_produto()
         elif opcao == 3:
+            time.sleep(2)
             ver_empresas()
         elif opcao == 4:
+            time.sleep(2)
             atualizar_cliente()
         elif opcao == 5:
-            print('Em breve...')
+            time.sleep(2)
+            adicionar_carrinho()
         elif opcao == 6:
-            print('Em breve...')
+            time.sleep(2)
+            ver_carrinho()
+        elif opcao == 7:
+            time.sleep(2)
+            remover_carrinho()
         elif opcao == 9:
             break
         else:
             print('Opção invalida!')
             time.sleep(2)
-
 # 5
 def listar_produtos():
     limpa_tela()
@@ -98,7 +108,6 @@ def listar_produtos():
     else:
         print('Nenhum Produto encontrado\n')
         input("Pressione ENTER para continuar...")
-
 # 6
 def ver_produtos():
     limpa_tela()
@@ -122,7 +131,6 @@ def ver_produtos():
     else:
         print('Nenhum Produto encontrado\n')
         input("Pressione ENTER para continuar...")
-
 # 7
 def busca_produto():
     limpa_tela()
@@ -148,7 +156,6 @@ def busca_produto():
         print('Nenhum produto encontrado')
     con.close()
     input("Pressione ENTER para continuar...")
-
 # 8
 def ver_empresas():
     limpa_tela()
@@ -170,8 +177,7 @@ def ver_empresas():
         print('Nenhuma empresa encontrada')
     con.close()
     input("Pressione ENTER para continuar...")
-
-# 9 
+# 9
 def atualizar_cliente():
     global cliente_logado
     if cliente_logado is None:
@@ -182,7 +188,6 @@ def atualizar_cliente():
     limpa_tela()
     exibir_nome()
     print('Atualizar dados\n')
-
     con = sqlite3.connect("ibex.db")
     cursor = con.cursor()
     cursor.execute('SELECT nome FROM cliente WHERE login = ?', (cliente_logado,))
@@ -200,26 +205,24 @@ def atualizar_cliente():
         if opcao == 1:
             novo_nome = input('Novo nome: ')
             cursor.execute('UPDATE cliente SET nome = ? WHERE login = ?', (novo_nome, cliente_logado))
-
         elif opcao == 2:
             novo_email = input('Novo e-mail: ')
             cursor.execute('UPDATE cliente SET login = ? WHERE login = ?', (novo_email, cliente_logado))
-            cliente_logado = novo_email
-
+            cliente_logado = novo_email  
         elif opcao == 3:
             nova_senha = input('Nova senha: ')
             cursor.execute('UPDATE cliente SET senha = ? WHERE login = ?', (nova_senha, cliente_logado))
-
         elif opcao == 4:
             con.close()
             return
-
         else:
             print('Opção inválida!')
             con.close()
             return
 
         con.commit()
+        print('Redirecionando...\n')
+        time.sleep(2)
         print('\nDados atualizados com sucesso!')
 
     else:
@@ -228,7 +231,7 @@ def atualizar_cliente():
     con.close()
     input("Pressione ENTER para continuar...")
 
-# 10
+# 10  
 def limpa_tela():
     if os.name == 'nt':
         os.system("cls")
@@ -255,6 +258,8 @@ def cad_empresa():
     cursor.execute(sql, (nome, senha, login, cnpj))
     con.commit()
     con.close()
+    print('Redirecionando...\n')
+    time.sleep(2)
     print('EMPRESA CADASTRADA COM SUCESSO!\n')
     input("Pressione ENTER para continuar...")
 
@@ -266,7 +271,6 @@ def login_empresa():
     print('Login Empresa\n')
     login = input('Digite seu E-mail:')
     senha = input('Digite sua Senha:')
-
     con = sqlite3.connect("ibex.db")
     cursor = con.cursor()
     cursor.execute("SELECT senha FROM empresa WHERE login = ?", (login,))
@@ -274,10 +278,13 @@ def login_empresa():
     if resultado:
         senha_correta = resultado[0]
         if senha == senha_correta:
-            empresa_logada = login
+            print('Redirecionando...\n')
+            time.sleep(2)
             print("Login realizado com sucesso!\n")
-            input("Pressione ENTER para continuar...")
+            time.sleep(1)
+            empresa_logada = login
             menu_empresa()
+            return
         else:
             print("Senha incorreta.")
     else:
@@ -302,10 +309,11 @@ def cad_produto():
     categoria = input('Tipo do produto:')
     con = sqlite3.connect('ibex.db')
     cursor = con.cursor()
-    sql = 'INSERT INTO produto (nome, descricao, preco, quantidade, categoria, empresa_id) VALUES (?,?,?,?,?,?)'
+    sql = 'INSERT INTO produtos (nome, descricao, preco, quantidade, categoria, empresa_id) VALUES (?,?,?,?,?,?)'
     cursor.execute(sql, (nome, descricao, preco, quantidade, categoria, empresa_logada))
     con.commit()
     con.close()
+    print('Redirecionando...\n')
     time.sleep(2)
     print('PRODUTO CADASTRADO COM SUCESSO!\n')
     input("Pressione ENTER para continuar...")
@@ -327,7 +335,7 @@ def cad_cliente():
     print('CADASTRADO COM SUCESSO!\n')
     input("Pressione ENTER para continuar...")
 
-# 16 
+# 16
 def login_cliente():
     global cliente_logado
     limpa_tela()
@@ -335,7 +343,6 @@ def login_cliente():
     print('(Login do Cliente)\n')
     login = input('Digite seu E-mail:')
     senha = input('Digite sua Senha:')
-
     con = sqlite3.connect("ibex.db")
     cursor = con.cursor()
     cursor.execute("SELECT senha FROM cliente WHERE login = ?", (login,))
@@ -343,22 +350,125 @@ def login_cliente():
     if resultado:
         senha_correta = resultado[0]
         if senha == senha_correta:
-            cliente_logado = login
             print('Senha Correta! Redirecionando...\n')
             time.sleep(2)
+            cliente_logado = login
             limpa_tela()
             print("Login realizado com sucesso!\n")
+            time.sleep(1)
             menu_cliente()
         else:
             time.sleep(2)
             limpa_tela()
             print("\nSenha incorreta.\n")
+            return
+
     else:
         print("Usuário não encontrado.\n")
+        return
     con.close()
     input("Pressione ENTER para continuar...")
 
-# cod principal
+#17
+def adicionar_carrinho():
+    global carrinho
+    limpa_tela()
+    exibir_nome()
+    print("Adicionar Produto ao Carrinho\n")
+    nome_produto = input("Digite o nome do produto que deseja adicionar: ")
+    con = sqlite3.connect("ibex.db")
+    cursor = con.cursor()
+    cursor.execute("SELECT id, nome, descricao, preco, quantidade FROM produtos WHERE nome LIKE ?", (f"%{nome_produto}%",))
+    produtos = cursor.fetchall()
+    if not produtos:
+        time.sleep(2)
+        print("Produto não encontrado.")
+        con.close()
+        input("Pressione ENTER para continuar...")
+        return
+    time.sleep(2)
+    print("\nProdutos encontrados:")
+    for p in produtos:
+        print(f"ID: {p[0]} | Nome: {p[1]} | Marca: {p[2]} | Preço: {p[3]} | Estoque: {p[4]}")
+
+    try:
+        produto_id = int(input("Digite o ID do produto que deseja adicionar ao carrinho: "))
+        quantidade = int(input("Digite a quantidade desejada: "))
+    except ValueError:
+        print("Entrada inválida.")
+        con.close()
+        input("Pressione ENTER para continuar...")
+        return
+    cursor.execute("SELECT nome, preco, quantidade FROM produtos WHERE id = ?", (produto_id,))
+    produto = cursor.fetchone()
+
+    if produto:
+        nome, preco, estoque = produto
+        if quantidade > estoque:
+            time.sleep(2)
+            print(f"Quantidade indisponível. Estoque atual: {estoque}")
+        else:
+            if produto_id in carrinho:
+                carrinho[produto_id]["quantidade"] += quantidade
+            else:
+                carrinho[produto_id] = {
+                    "nome": nome,
+                    "preco": preco,
+                    "quantidade": quantidade
+                }
+            time.sleep(2)
+            print(f"{quantidade} de {nome} adicionado(s) ao carrinho.")
+    else:
+        print("Produto não encontrado.")
+    con.close()
+    input("Pressione ENTER para continuar...")
+
+#18
+def ver_carrinho():
+    limpa_tela()
+    exibir_nome()
+    print("Seu carrinho de compras:\n")
+    if not carrinho:
+        print("Carrinho está vazio.")
+    else:
+        total = 0
+        for item in carrinho.values():
+            subtotal = item["preco"] * item["quantidade"]
+            print(f'{item["quantidade"]}x {item["nome"]} - R${item["preco"]:.2f} cada (Subtotal: R${subtotal:.2f})')
+            total += subtotal
+        time.sleep(2)
+        print(f"\nTotal: R${total:.2f}")
+    input("Pressione ENTER para continuar...")
+
+#19
+def remover_carrinho():
+    limpa_tela()
+    exibir_nome()
+    print("Remover item do carrinho:\n")
+    if not carrinho:
+        print("Carrinho está vazio.")
+        input("Pressione ENTER para continuar...")
+        return
+    produtos = list(carrinho.items()) 
+    for idx, (produto_id, item) in enumerate(produtos, start=1):
+        time.sleep(2)
+        print(f"{idx}. {item['nome']} - {item['quantidade']}x - R${item['preco']:.2f} cada")
+
+    try:
+        escolha = int(input("\nDigite o número do item que deseja remover: "))
+        if 1 <= escolha <= len(produtos):
+            produto_id = produtos[escolha - 1][0]
+            removido = carrinho.pop(produto_id)
+            time.sleep(2)
+            print(f"\n{removido['nome']} removido do carrinho.")
+        else:
+            print("\nOpção inválida.")
+    except ValueError:
+        print("\nEntrada inválida. Digite um número.")
+    input("\nPressione ENTER para continuar...")
+
+
+# codigo principal
 opcao = 1
 while (opcao!=9):
     menu_principal()
