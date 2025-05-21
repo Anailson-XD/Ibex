@@ -1,0 +1,33 @@
+import requests
+
+class ConsultaCEP:
+    def __init__(self, cep):
+        self.cep = cep
+        self.dados = {}
+
+    def buscar(self):
+        try:
+            url = f"https://viacep.com.br/ws/{self.cep}/json/"
+            resposta = requests.get(url)
+            resposta.raise_for_status()
+            self.dados = resposta.json()
+        except requests.exceptions.RequestException as e:
+            print("Erro ao consultar o CEP:", e)
+            self.dados = None
+
+    def exibir_resultado(self):
+        if self.dados and "erro" not in self.dados:
+            a = int(input("Digite o número da residencia: "))
+            print(f"CEP: {self.dados['cep']}")
+            print(f"Logradouro: {self.dados['logradouro']}")
+            print("Número:", a)
+            print(f"Bairro: {self.dados['bairro']}")
+            print(f"Cidade: {self.dados['localidade']}")
+            print(f"Estado: {self.dados['uf']}")
+        else:
+            print("CEP inválido ou não encontrado.")
+
+cep_usuario = input("Digite um CEP: ")
+consulta = ConsultaCEP(cep_usuario)
+consulta.buscar()
+consulta.exibir_resultado()
