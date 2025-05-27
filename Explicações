@@ -1,0 +1,144 @@
+## EXPLICAÇÃO POR BLOCOS DO CÓDIGO DO PROJETO IBEX
+
+---
+
+### ✨ VISÃO GERAL
+
+O sistema Ibex simula uma plataforma de pedidos para materiais de construção (como um "iFood do setor"). Ele é feito para ser executado via terminal e utiliza:
+
+* **Python** como linguagem principal
+* **SQLite** como banco de dados local
+* **Biblioteca `requests`** para buscar endereço via CEP
+* **Programado por funções**, com uma classe de relatório usando POO
+
+---
+
+### ✅ BLOCO 1: INTERFACE E ESTRUTURA
+
+* **`menu_principal()`**: Mostra as opções iniciais para cadastro e login
+* **`menu_cliente()`**: Acessado após login de cliente, permite ver produtos, empresas, atualizar dados e usar o carrinho
+* **`menu_empresa()`**: Acessado após login de empresa, permite cadastrar produtos, listar e ver relatórios
+* **`menu_carrinho()`**: Submenu para interação com o carrinho (adicionar, remover, finalizar)
+* **`exibir_nome()` e `cabecalho_carrinho()`**: Apenas prints estilizados do nome da aplicação
+* **`limpa_tela()`**: Limpa o terminal para melhor experiência visual
+* **`finalizando_app()`**: Sai da aplicação
+
+---
+
+### 👤 BLOCO 2: CLIENTES
+
+* **`cad_cliente()`**: Solicita nome, login e senha, e salva na tabela `cliente`
+* **`login_cliente()`**: Verifica o login com base no e-mail e senha. Em caso de sucesso, chama `menu_cliente()`
+* **`atualizar_cliente()`**: Permite alterar nome, e-mail ou senha do cliente logado
+
+---
+
+### 💼 BLOCO 3: EMPRESAS
+
+* **`cad_empresa()`**: Cadastra nome, senha, login e CNPJ na tabela `empresa`
+* **`login_empresa()`**: Verifica as credenciais e redireciona para `menu_empresa()`
+
+---
+
+### 🏢 BLOCO 4: PRODUTOS
+
+* **`cad_produto()`**: Permite que uma empresa cadastre um produto (com nome, preço, quantidade etc.). Recupera o ID da empresa pelo login.
+* **`listar_produtos()`**: Lista todos os produtos cadastrados (modo empresa)
+* **`ver_produtos()`**: Lista os produtos para o cliente (modo compra)
+* **`busca_produto()`**: Permite ao cliente buscar produtos por nome ou categoria
+
+---
+
+### 🏦 BLOCO 5: EMPRESAS CADASTRADAS
+
+* **`ver_empresas()`**: Lista todas as empresas cadastradas, mostrando nome, login e CNPJ
+
+---
+
+### 🛋 BLOCO 6: CARRINHO
+
+* **`carrinho`**: Variável global do tipo `dict` onde cada produto é armazenado com nome, quantidade, preço e id da empresa
+* **`adicionar_carrinho()`**: Busca produto por nome, permite escolher por ID, define quantidade e armazena no dicionário `carrinho`
+* **`ver_carrinho()`**: Mostra todos os itens e o total do carrinho atual
+* **`remover_carrinho()`**: Permite remover um item do carrinho
+* **`finalizar_pedido()`**:
+
+  1. Solicita o CEP
+  2. Usa a API ViaCEP para exibir endereço
+  3. Mostra resumo dos itens do carrinho
+  4. Salva os dados na tabela `carrinho`
+  5. Limpa o carrinho da memória
+
+---
+
+### 📊 BLOCO 7: RELATÓRIOS COM POO
+
+* **Classe `Relatorio`**:
+
+  * Usa POO para organizar as consultas de dados
+  * Métodos: `total_clientes`, `total_empresas`, `total_produtos`, `estoque_baixo`
+* **`gerar_relatorio()`**:
+
+  * Mostra totais de clientes, empresas e produtos
+  * Mostra produtos com estoque baixo
+  * Usa a classe `Relatorio`
+
+---
+
+### 🔢 BLOCO 8: BANCO DE DADOS (resumo)
+
+Tabelas principais usadas:
+
+* `cliente(id, nome, senha, login)`
+* `empresa(id, nome, senha, login, cnpj)`
+* `produtos(id, nome, descricao, preco, quantidade, categoria, empresa_id)`
+* `carrinho(id, id_cliente, id_produto, nome_produto, quantidade, preco_unitario, id_empresa)`
+
+---
+
+### ✨ CONSIDERAÇÕES FINAIS
+
+* O sistema é funcional, modular e com boa divisão de menus
+* Implementa práticas de CRUD, uso de banco relacional e API externa
+* Introduz POO no relatório sem comprometer o restante do projeto
+* Ótimo exemplo de aplicação em terminal com funcionalidades realistas
+
+
+(coisas do codigo)
+🔐 O que são empresa_logada e cliente_logado?
+Elas são variáveis globais que guardam informações da sessão atual de quem está usando o sistema:
+
+empresa_logada: armazena o login (e-mail) da empresa que fez login com sucesso.
+cliente_logado: armazena o login (e-mail) do cliente que está usando o sistema.
+
+🧠 Por que isso é necessário?
+Como o sistema é feito no terminal e não tem autenticação com sessões ou cookies, essas variáveis funcionam como uma forma simples de lembrar quem está logado,
+para que as ações seguintes estejam vinculadas àquela pessoa ou empresa.
+
+📌 Onde elas são usadas?
+🏢 empresa_logada:
+Usada na função cad_produto() para saber qual empresa está cadastrando o produto.
+cursor.execute("SELECT id FROM empresa WHERE login = ?", (empresa_logada,))
+Também ativa o menu_empresa() após o login da empresa.
+
+🧍 cliente_logado:
+Usada em menu_cliente() para permitir que só clientes logados acessem suas funcionalidades.
+Usada em finalizar_pedido() para gravar no banco de dados quem está fazendo o pedido:
+cursor.execute("SELECT id FROM cliente WHERE login = ?", (cliente_logado,))
+Usada em atualizar_cliente() para permitir que o cliente altere apenas os próprios dados.
+
+| Linha                                            | O que faz                              | Para que serve                                 |
+
+| `con.execute("PRAGMA foreign_keys = ON")`        | Ativa suporte a chaves estrangeiras    | Garante integridade entre tabelas relacionadas |
+| `cursor.execute("SELECT COUNT(*) FROM cliente")` | Conta o número de clientes cadastrados | Usado para relatórios, métricas, etc.          |
+
+(Tabelas)
+
+🧩 Destaques:
+empresa_id cria um vínculo com a tabela empresa, indicando quem está vendendo o produto.
+Campos como preco, quantidade e categoria tornam a descrição do produto completa.
+Cada produto pertence a uma única empresa, mas uma empresa pode ter vários produtos.
+
+A tabela produtos é central para o catálogo da loja: cada item está vinculado a uma empresa e contém informações completas.
+A tabela carrinho é usada como registro de pedidos, com todas as informações necessárias para manter o histórico e exibir relatórios.
+Ambas tabelas usam FOREIGN KEY para manter integridade referencial — garantindo que os dados estejam sempre relacionados corretamente.
