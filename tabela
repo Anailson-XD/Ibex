@@ -56,6 +56,22 @@ def criar_tabelas():
         );
     ''')
 
+    # Tabela carrinho Temporario
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS carrinho_temp (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_cliente INTEGER NOT NULL,
+            id_produto INTEGER NOT NULL,
+            nome_produto TEXT NOT NULL,
+            quantidade INTEGER NOT NULL,
+            preco_unitario REAL NOT NULL,
+            id_empresa INTEGER NOT NULL,
+            FOREIGN KEY (id_cliente) REFERENCES cliente(id),
+            FOREIGN KEY (id_produto) REFERENCES produtos(id),
+            FOREIGN KEY (id_empresa) REFERENCES empresa(id)
+        );
+    ''')
+
     con.commit()
     con.close()
     print("Tabelas criadas com sucesso.")
