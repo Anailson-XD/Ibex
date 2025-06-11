@@ -31,7 +31,8 @@ def menu_principal():
 
  # 4
 def menu_empresa():
-    while True:
+    opcao = 0
+    while opcao != 4:
         limpa_tela()
         exibir_nome()
         print('Menu da empresa')
@@ -46,14 +47,15 @@ def menu_empresa():
             listar_produtos()
         elif opcao == 3:
             gerar_relatorio()
-        elif opcao == 4:
-            break
-        else:
-            print('Opção Invalida!')
+        elif opcao not in [1, 2, 3, 4]:
+            print('Opção inválida!')
+            input("Pressione ENTER para continuar...")
+
 
 # 5   
 def menu_cliente():
-    while True:
+    opcao = 0
+    while opcao != 9:
         limpa_tela()
         exibir_nome()
         print('Menu Cliente\n')
@@ -62,8 +64,6 @@ def menu_cliente():
         print('3. Ver empresas cadastradas')
         print('4. Atualizar dados')
         print('5. Carrinho')
-        print('6. Adicionar aos favoritos')
-        print('7. Ver favoritos')
         print('9. Sair')
         opcao = int(input("Opcao:"))
         if opcao == 1:
@@ -76,18 +76,15 @@ def menu_cliente():
             atualizar_cliente()
         elif opcao == 5:
             menu_carrinho()
-        elif opcao == 6:
-            adicionar_favorito()
-        elif opcao == 7:
-            ver_favoritos()
-        elif opcao == 9:
-            break
-        else:
-            print('Opção invalida!')
+        elif opcao not in [1, 2, 3, 4, 5, 9]:
+            print('Opção inválida!')
+            input("Pressione ENTER para continuar...")
+
 
 # 6
 def menu_carrinho():
-    while True:
+    opcao = 0
+    while opcao != 9:
         limpa_tela()
         cabecalho_carrinho()
         print('Digite uma opção abaixo:\n')
@@ -99,19 +96,18 @@ def menu_carrinho():
         print('9. Sair')
         opcao = int(input("Opcao:"))
         if opcao == 1:
-                adicionar_carrinho()
+            adicionar_carrinho()
         elif opcao == 2:
-                ver_carrinho()
+            ver_carrinho()
         elif opcao == 3:
-                remover_carrinho()
+            remover_carrinho()
         elif opcao == 4:
             print('Em breve')
         elif opcao == 5:
             finalizar_pedido()
-        elif opcao == 9:
-            break
-        else:
-            print('Opção invalida!')
+        elif opcao not in [1, 2, 3, 4, 5, 9]:
+            print('Opção inválida!')
+            input("Pressione ENTER para continuar...")
             
 # 7
 def listar_produtos():
@@ -779,17 +775,27 @@ def ver_favoritos():
     input("\nPressione ENTER para voltar...")
 
 # codigo principal
-opcao = 1
-while (opcao!=9):
+opcao = 0 
+
+while opcao != 9:
     menu_principal()
-    opcao = int(input("Opcao:"))
-    if (opcao==1):
+    try:
+        opcao = int(input("Opção: "))
+    except ValueError:
+        print("Digite um número válido!")
+        time.sleep(1)
+        continue
+
+    if opcao == 1:
         cad_cliente()
-    elif (opcao==2):
+    elif opcao == 2:
         login_cliente()
-    elif (opcao==3):
+    elif opcao == 3:
         cad_empresa()
-    elif (opcao==4):
+    elif opcao == 4:
         login_empresa()
-    elif (opcao==9):
+    elif opcao == 9:
         finalizando_app()
+    else:
+        print("Opção inválida.")
+        time.sleep(1)
