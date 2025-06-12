@@ -7,35 +7,26 @@ empresa_logada = None
 cliente_logado = None
 favoritos = {}
 
-# 1
+
 def exibir_nome():
     print('#################################')
     print('Ｂｅｍ ｖｉｎｄｏ ａｏ Ｉｂｅｘ！')
     print('#################################')
 
-# 2
-def cabecalho_carrinho():
-    print('########################')
-    print('🛒 CARRINHO DE COMPRAS')
-    print('########################')
 
-# 3
 def menu_principal():
-    limpa_tela()
-    exibir_nome()
+    exibir_subtitulo('Selecione uma das opções: ')
     print('1. Cadastre-se')
     print('2. Login ')
     print('3. Cadastrar Empresa')
     print('4. Login Empresa')
     print('9. Sair')
 
- # 4
 def menu_empresa():
     opcao = 0
     while opcao != 4:
-        limpa_tela()
         exibir_nome()
-        print('Menu da empresa')
+        exibir_subtitulo('Menu cliente')
         print('1. Cadastrar produtos')
         print('2. Ver produtos')
         print('3. Relatório')
@@ -51,14 +42,10 @@ def menu_empresa():
             print('Opção inválida!')
             input("Pressione ENTER para continuar...")
 
-
-# 5   
 def menu_cliente():
     opcao = 0
     while opcao != 9:
-        limpa_tela()
-        exibir_nome()
-        print('Menu Cliente\n')
+        exibir_subtitulo('Menu cliente')
         print('1. Ver Produtos disponiveis')
         print('2. Buscar produtos')
         print('3. Ver empresas cadastradas')
@@ -85,9 +72,7 @@ def menu_cliente():
 def menu_carrinho():
     opcao = 0
     while opcao != 9:
-        limpa_tela()
-        cabecalho_carrinho()
-        print('Digite uma opção abaixo:\n')
+        exibir_subtitulo('Digite uma das opções')
         print('1. Adicionar produto ao carrinho')
         print('2. Ver Carrinho')
         print('3. Remover produto do Carrinho')
@@ -108,12 +93,11 @@ def menu_carrinho():
         elif opcao not in [1, 2, 3, 4, 5, 9]:
             print('Opção inválida!')
             input("Pressione ENTER para continuar...")
-            
+
+
 # 7
 def listar_produtos():
-    limpa_tela()
-    exibir_nome()
-    print('Produtos Cadastrados\n')
+    exibir_subtitulo('Produtos cadastrados')
     con = sqlite3.connect('ibex.db')
     cursor = con.cursor()
     cursor.execute('SELECT nome, descricao, preco, quantidade, categoria FROM produtos ')
@@ -134,9 +118,7 @@ def listar_produtos():
     input("Pressione ENTER para continuar...")
 # 8
 def ver_produtos():
-    limpa_tela()
-    exibir_nome()
-    print('Produtos disponiveis\n')
+    exibir_subtitulo('Produtos disponíveis')
     con = sqlite3.connect('ibex.db')
     cursor = con.cursor()
     cursor.execute('SELECT nome, descricao, preco, quantidade, categoria FROM produtos ')
@@ -157,9 +139,7 @@ def ver_produtos():
         input("Pressione ENTER para continuar...")
 # 9
 def busca_produto():
-    limpa_tela()
-    exibir_nome()
-    print('Encontre o produto desejado\n')
+    exibir_subtitulo('Encontre o produto desejado')
     busca = input('Digite o nome ou categoria do produtos:')
     con = sqlite3.connect("ibex.db")
     cursor = con.cursor()
@@ -180,11 +160,10 @@ def busca_produto():
         print('Nenhum produto encontrado')
     con.close()
     input("Pressione ENTER para continuar...")
+    
 # 10
 def ver_empresas():
-    limpa_tela()
-    exibir_nome()
-    print('Empresas cadastradas\n')
+    exibir_subtitulo('Empresas cadastradas')
     con = sqlite3.connect("ibex.db")
     cursor = con.cursor()
     cursor.execute('SELECT nome, login, cnpj FROM empresa')
@@ -208,15 +187,12 @@ def atualizar_cliente():
         print("Você precisa estar logado para atualizar seus dados.")
         input("Pressione ENTER para voltar...")
         return
-
-    limpa_tela()
     exibir_nome()
-    print('Atualizar dados\n')
+    exibir_subtitulo('Atualize seus dados')
     con = sqlite3.connect("ibex.db")
     cursor = con.cursor()
     cursor.execute('SELECT nome FROM cliente WHERE login = ?', (cliente_logado,))
     resultado = cursor.fetchone()
-
     if resultado:
         print(f'\nBem-vindo, {resultado[0]}')
         print('O que deseja atualizar?')
@@ -255,23 +231,18 @@ def atualizar_cliente():
     con.close()
     input("Pressione ENTER para continuar...")
 
-# 12
-def limpa_tela():
-    if os.name == 'nt':
-        os.system("cls")
-    else:
-        os.system("clear")
-
-# 13
-def finalizando_app():
+def exibir_subtitulo(texto):
     os.system('cls')
-    print('Saindo do app!\n')
+    exibir_nome()
+    print(texto)
+    print()
+
+def finalizando_app():
+    exibir_subtitulo('Finalizando App')
 
 # 14
 def cad_empresa():
-    limpa_tela()
-    exibir_nome()
-    print('Cadastre sua Empresa!')
+    exibir_subtitulo('Cadastre sua empresa')
     nome = input('Nome:')
     senha = input('Crie uma Senha:')
     login = input('E-mail:')
@@ -290,9 +261,7 @@ def cad_empresa():
 # 15
 def login_empresa():
     global empresa_logada
-    limpa_tela()
-    exibir_nome()
-    print('Login Empresa\n')
+    exibir_subtitulo('Login empresa')
     login = input('Digite seu E-mail:')
     senha = input('Digite sua Senha:')
     con = sqlite3.connect("ibex.db")
@@ -320,9 +289,7 @@ def login_empresa():
 # 16
 def cad_produto():
     global empresa_logada
-    limpa_tela()
-    exibir_nome()
-    print('Cadastro do produto\n')
+    exibir_subtitulo('Cadastre seu produto')
     if empresa_logada is None:
         print('Erro: Nenhuma empresa está logada!')
         return
@@ -346,9 +313,7 @@ def cad_produto():
 
 # 17
 def cad_cliente():
-    limpa_tela()
-    exibir_nome()
-    print('Insira seus dados!')
+    exibir_subtitulo('Cadastre-se agora!')
     nome = input('Nome:')
     senha = input('Crie uma Senha:')
     login = input('E-mail:')
@@ -364,9 +329,7 @@ def cad_cliente():
 # 18
 def login_cliente():
     global cliente_logado
-    limpa_tela()
-    exibir_nome()
-    print('(Login do Cliente)\n')
+    exibir_subtitulo('Realize seu login')
     login = input('Digite seu E-mail:')
     senha = input('Digite sua Senha:')
     con = sqlite3.connect("ibex.db")
@@ -379,13 +342,13 @@ def login_cliente():
             print('Senha Correta! Redirecionando...\n')
             time.sleep(1)
             cliente_logado = login
-            limpa_tela()
+            os.system('cls')
             print("Login realizado com sucesso!\n")
             time.sleep(1)
             menu_cliente()
         else:
             time.sleep(1)
-            limpa_tela()
+            os.system('cls')
             print("\nSenha incorreta.\n")
             return
 
@@ -397,10 +360,7 @@ def login_cliente():
 
 #19
 def adicionar_carrinho():
-    limpa_tela()
-    cabecalho_carrinho()
-    print("Adicionar Produto ao Carrinho\n")
-
+    exibir_subtitulo('Adicione produto(s) ao carrinho')
     if cliente_logado is None:
         print("Você precisa estar logado como cliente para adicionar ao carrinho.")
         input("Pressione ENTER para continuar...")
@@ -481,8 +441,7 @@ def adicionar_carrinho():
 
 # 20
 def ver_carrinho():
-    limpa_tela()
-    cabecalho_carrinho()
+    exibir_subtitulo('Produtos no carrinho')
 
     if cliente_logado is None:
         print("Você precisa estar logado para ver o carrinho.")
@@ -521,8 +480,7 @@ def ver_carrinho():
 
 # 21
 def remover_carrinho():
-    limpa_tela()
-    cabecalho_carrinho()
+    exibir_subtitulo('Remova produto(s) do carrinho')
 
     if cliente_logado is None:
         print("Você precisa estar logado para remover itens.")
@@ -572,9 +530,7 @@ def remover_carrinho():
 #22
 def finalizar_pedido():
     global cliente_logado
-
-    limpa_tela()
-    cabecalho_carrinho()
+    exibir_subtitulo('Finalize seu pedido')
 
     if cliente_logado is None:
         print("Você precisa estar logado como cliente para finalizar o pedido.")
@@ -656,6 +612,8 @@ def finalizar_pedido():
     print(f"📦 Endereço de entrega: {endereco}")
     input("\nPressione ENTER para continuar...")
 
+
+
 #23
 class Relatorio:
     def __init__(self, db_path='ibex.db'):
@@ -707,8 +665,7 @@ class Relatorio:
         return dados
 #24
 def gerar_relatorio():
-    limpa_tela()
-    exibir_nome()
+    exibir_subtitulo('Relátorio do sistema')
     rel = Relatorio()
 
     print("Relatório do sistema:\n")
@@ -729,10 +686,8 @@ def gerar_relatorio():
 # 25
 def adicionar_favorito():
     global favoritos
-    limpa_tela()
-    exibir_nome()
-    print("ADICIONAR AOS FAVORITOS")
-    
+    exibir_subtitulo('Adicione produto(s) aos favoritos')
+
     nome = input("Digite o nome do produto que deseja favoritar: ")
 
     con = sqlite3.connect("ibex.db")
@@ -764,9 +719,7 @@ def adicionar_favorito():
 
 # 26
 def ver_favoritos():
-    limpa_tela()
-    exibir_nome()
-    print("SEUS FAVORITOS:\n")
+    exibir_subtitulo('Seus favoritos')
     if not favoritos:
         print("Nenhum produto favoritado.")
     else:
@@ -774,7 +727,7 @@ def ver_favoritos():
             print(f"- {f['nome']} | Marca: {f['descricao']} | Preço: R${f['preco']:.2f}")
     input("\nPressione ENTER para voltar...")
 
-# codigo principal
+
 opcao = 0 
 
 while opcao != 9:
