@@ -1,0 +1,1066 @@
+import os
+import sqlite3
+import time
+import requests
+
+empresa_logada = None
+cliente_logado = None
+colaborador_logado = None
+favoritos = {}
+
+
+def exibir_nome():
+    print('#################################')
+    print('Ｂｅｍ ｖｉｎｄｏ ａｏ Ｉｂｅｘ！')
+    print('#################################')
+
+
+def menu_principal():
+    exibir_subtitulo('Selecione uma das opções: ')
+    print('1. Cadastre-se')
+    print('2. Login ')
+    print('3. Cadastrar Empresa')
+    print('4. Login Empresa')
+    print('5. Cadastrar Colaborador')
+    print('6. Login Colaborador')
+    print('9. Sair')
+
+def menu_empresa():
+    opcao = 0
+    while opcao != 5:
+        exibir_nome()
+        exibir_subtitulo('Menu cliente')
+        print('1. Cadastrar produtos')
+        print('2. Ver produtos')
+        print('3. Relatório')
+        print('5. Sair')
+        opcao = int(input('Escolha uma opção:'))
+        if opcao == 1:
+            cad_produto()
+        elif opcao == 2:
+            listar_produtos()
+        elif opcao == 3:
+            gerar_relatorio()
+        elif opcao not in [1, 2, 3, 5]:
+            print('Opção inválida!')
+            input("Pressione ENTER para continuar...")
+
+def menu_cliente():
+    opcao = 0
+    while opcao != 9:
+        exibir_subtitulo('Menu cliente')
+        print('1. Ver Produtos disponiveis')
+        print('2. Buscar produtos')
+        print('3. Ver empresas cadastradas')
+        print('4. Atualizar dados')
+        print('5. Carrinho')
+        print('6. Ver pedidos anteriores')
+        print('7. Solicitar Serviços')
+        print('9. Sair')
+        try:
+            opcao = int(input("Opção: "))
+        except ValueError:
+            print("Opção inválida.")
+            continue
+        if opcao == 1:
+            ver_produtos()
+        elif opcao == 2:
+            busca_produto()
+        elif opcao == 3:
+            ver_empresas()
+        elif opcao == 4:
+            atualizar_cliente()
+        elif opcao == 5:
+            menu_carrinho()
+        elif opcao == 6:
+            historico_pedidos()
+        elif opcao == 7:
+            solicitar_servicos()
+        elif opcao not in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
+            print('Opção inválida!')
+            input("Pressione ENTER para continuar...")
+
+
+def menu_carrinho():
+    opcao = 0
+    while opcao != 9:
+        exibir_subtitulo('Digite uma das opções')
+        print('1. Adicionar produto ao carrinho')
+        print('2. Ver Carrinho')
+        print('3. Remover produto do Carrinho')
+        print('4. Editar produto do Carrinho')
+        print('5. Finalizar pedido')
+        print('9. Sair')
+        opcao = int(input("Opcao:"))
+        if opcao == 1:
+            adicionar_carrinho()
+        elif opcao == 2:
+            ver_carrinho()
+        elif opcao == 3:
+            remover_carrinho()
+        elif opcao == 4:
+            print('Em breve')
+        elif opcao == 5:
+            finalizar_pedido()
+        elif opcao not in [1, 2, 3, 4, 5, 9]:
+            print('Opção inválida!')
+            input("Pressione ENTER para continuar...")
+
+
+def menu_colaborador():
+    opcao = 0
+    while opcao != 9:
+        exibir_subtitulo('Menu do Colaborador')
+        print('1. Ver pedidos pendentes')
+        print('2. Aceitar um pedido')
+        print('3. Ver meus pedidos aceitos')
+        print('4. Marcar pedido como concluído')
+        print('9. Sair')
+
+        try:
+            opcao = int(input('Escolha uma opção: '))
+        except ValueError:
+            print('Opção inválida! Digite um número.')
+            continue
+
+        if opcao == 1:
+            listar_pedidos_pendentes()
+        elif opcao == 2:
+            aceitar_pedido()
+        elif opcao == 3:
+            ver_meus_pedidos()
+        elif opcao == 4:
+            concluir_pedido()
+        elif opcao == 9:
+            print('Saindo do menu do colaborador...')
+        else:
+            print('Opção inválida!')
+
+        input('\nPressione ENTER para continuar...')
+
+
+def listar_produtos():
+    exibir_subtitulo('Produtos cadastrados')
+    con = sqlite3.connect('ibex.db')
+    cursor = con.cursor()
+    cursor.execute('SELECT nome, descricao, preco, quantidade, categoria FROM produtos ')
+    produtos = cursor.fetchall()
+    con.close()
+    if produtos:
+        for p in produtos:
+            print('------------------------')
+            print(f'Nome:{p[0]}')
+            print(f'Descrição:{p[1]}')
+            print(f'Preço:{p[2]}')
+            print(f'Quantidade:{p[3]}')
+            print(f'Categoria:{p[4]}')
+            print()
+            time.sleep(1)
+    else:
+        print('Nenhum Produto encontrado\n')
+    input("Pressione ENTER para continuar...")
+
+
+def ver_produtos():
+    exibir_subtitulo('Produtos disponíveis')
+    con = sqlite3.connect('ibex.db')
+    cursor = con.cursor()
+    cursor.execute('SELECT nome, descricao, preco, quantidade, categoria FROM produtos ')
+    produtos = cursor.fetchall()
+    con.close()
+    if produtos:
+        for p in produtos:
+            print('------------------------')
+            print(f'Nome:{p[0]}')
+            print(f'Marca:{p[1]}')
+            print(f'Preço:{p[2]}')
+            print(f'Quantidade:{p[3]}')
+            print(f'Categoria:{p[4]}')
+            print('------------------------\n')
+            time.sleep(1)
+    else:
+        print('Nenhum Produto encontrado\n')
+        input("Pressione ENTER para continuar...")
+
+
+def busca_produto():
+    exibir_subtitulo('Encontre o produto desejado')
+    busca = input('Digite o nome ou categoria do produtos:')
+    con = sqlite3.connect("ibex.db")
+    cursor = con.cursor()
+    sql = """SELECT nome, descricao, preco, quantidade, categoria FROM produtos WHERE nome LIKE ? OR categoria LIKE ?"""
+    cursor.execute(sql,(f'%{busca}%',f'%{busca}%'))
+    resultado = cursor.fetchall()
+    if resultado:
+        for produto in resultado:
+            print('------------------------')
+            print(f'Nome:{produto[0]}')
+            print(f'Marca:{produto[1]}')
+            print(f'Preço:{produto[2]}')
+            print(f'Quantidade:{produto[3]}')
+            print(f'Categoria:{produto[4]}')
+            print('------------------------\n')
+            time.sleep(1)
+    else:
+        print('Nenhum produto encontrado')
+    con.close()
+    input("Pressione ENTER para continuar...")
+    
+
+def ver_empresas():
+    exibir_subtitulo('Empresas cadastradas')
+    con = sqlite3.connect("ibex.db")
+    cursor = con.cursor()
+    cursor.execute('SELECT nome, login, cnpj FROM empresa')
+    empresas = cursor.fetchall()
+    if empresas:
+        for empresa in empresas:
+            print(f'Nome:{empresa[0]}')
+            print(f'Email:{empresa[1]}')
+            print(f'CNPJ:{empresa[2]}')
+            print('------------------------\n')
+            time.sleep(1)
+    else:
+        print('Nenhuma empresa encontrada')
+    con.close()
+    input("Pressione ENTER para continuar...")
+    
+
+def atualizar_cliente():
+    global cliente_logado
+    if cliente_logado is None:
+        print("Você precisa estar logado para atualizar seus dados.")
+        input("Pressione ENTER para voltar...")
+        return
+    exibir_nome()
+    exibir_subtitulo('Atualize seus dados')
+    con = sqlite3.connect("ibex.db")
+    cursor = con.cursor()
+    cursor.execute('SELECT nome FROM cliente WHERE login = ?', (cliente_logado,))
+    resultado = cursor.fetchone()
+    if resultado:
+        print(f'\nBem-vindo, {resultado[0]}')
+        print('O que deseja atualizar?')
+        print('1. Nome')
+        print('2. E-mail')
+        print('3. Senha')
+        print('4. Voltar')
+        opcao = int(input('Escolha uma opção: '))
+
+        if opcao == 1:
+            novo_nome = input('Novo nome: ')
+            cursor.execute('UPDATE cliente SET nome = ? WHERE login = ?', (novo_nome, cliente_logado))
+        elif opcao == 2:
+            novo_email = input('Novo e-mail: ')
+            cursor.execute('UPDATE cliente SET login = ? WHERE login = ?', (novo_email, cliente_logado))
+            cliente_logado = novo_email  
+        elif opcao == 3:
+            nova_senha = input('Nova senha: ')
+            cursor.execute('UPDATE cliente SET senha = ? WHERE login = ?', (nova_senha, cliente_logado))
+        elif opcao == 4:
+            con.close()
+            return
+        else:
+            print('Opção inválida!')
+            con.close()
+            return
+
+        con.commit()
+        print('Redirecionando...\n')
+        time.sleep(1)
+        print('\nDados atualizados com sucesso!')
+
+    else:
+        print('\nErro: cliente não encontrado.')
+
+    con.close()
+    input("Pressione ENTER para continuar...")
+
+def exibir_subtitulo(texto):
+    os.system('cls')
+    exibir_nome()
+    print(texto)
+    print()
+
+def finalizando_app():
+    exibir_subtitulo('Finalizando App')
+
+def cad_colaborador():
+    exibir_subtitulo('Seja um colaborador!')
+    nome = input('Nome:')
+    login = input('E-mail:')
+    senha = input('Crie uma senha:')
+    numero = input('Número pra contato:')
+    funcao = input('Qual sua aréa de atuação:')
+    con = sqlite3.connect('ibex.db')
+    cursor = con.cursor()
+    sql = 'INSERT INTO colaboradores (nome, login, senha, numero, funcao) VALUES (?, ?, ?, ?, ?)'
+    cursor.execute(sql, (nome, login, senha, numero, funcao))
+    con.commit()
+    con.close()
+    print('Redirecionando...\n')
+    time.sleep(1)
+    print('CADASTRO REALIZADO COM SUCESSO!\n')
+    input('Pressione ENTER para continuar...')
+
+def login_colaborador():
+    global colaborador_logado
+    exibir_subtitulo('Faça o Login')
+    login = input('Digite seu E-mail:')
+    senha = input('Digite a senha:')
+    con = sqlite3.connect('ibex.db')
+    cursor = con.cursor()
+    cursor.execute('SELECT senha FROM colaboradores WHERE login = ?', (login,))
+    resultado = cursor.fetchone()
+    if resultado:
+        senha_correta = resultado[0]
+        if senha == senha_correta:
+            print('Redirecionamento...\n')
+            time.sleep(1)
+            print('Login realizado com sucesso!\n')
+            time.sleep(1)
+            colaborador_logado = login
+            menu_colaborador()
+        else:
+            print('Senha incorreta!')
+    else:
+        print('Usuário não encontrado!')
+
+    con.close()
+    input('Pressione ENTER para continuar...')
+
+def cad_empresa():
+    exibir_subtitulo('Cadastre sua empresa')
+    nome = input('Nome:')
+    senha = input('Crie uma Senha:')
+    login = input('E-mail:')
+    cnpj = input('CNPJ:')
+    con = sqlite3.connect("ibex.db")
+    cursor = con.cursor()
+    sql = "INSERT INTO empresa (nome, senha, login, cnpj) VALUES (?, ?, ?, ?)"
+    cursor.execute(sql, (nome, senha, login, cnpj))
+    con.commit()
+    con.close()
+    print('Redirecionando...\n')
+    time.sleep(1)
+    print('EMPRESA CADASTRADA COM SUCESSO!\n')
+    input("Pressione ENTER para continuar...")
+
+
+def login_empresa():
+    global empresa_logada
+    exibir_subtitulo('Login empresa')
+    login = input('Digite seu E-mail:')
+    senha = input('Digite sua Senha:')
+    con = sqlite3.connect("ibex.db")
+    cursor = con.cursor()
+    cursor.execute("SELECT senha FROM empresa WHERE login = ?", (login,))
+    resultado = cursor.fetchone()
+    if resultado:
+        senha_correta = resultado[0]
+        if senha == senha_correta:
+            print('Redirecionando...\n')
+            time.sleep(1)
+            print("Login realizado com sucesso!\n")
+            time.sleep(1)
+            empresa_logada = login
+            menu_empresa()
+            return
+        else:
+            print("Senha incorreta.")
+    else:
+        print("Usuário não encontrado.")
+
+    con.close()
+    input("Pressione ENTER para continuar...")
+
+
+def cad_produto():
+    global empresa_logada
+    exibir_subtitulo('Cadastre seu produto')
+    if empresa_logada is None:
+        print('Erro: Nenhuma empresa está logada!')
+        return
+    nome = input('Nome do produto:')
+    descricao = input('Marca:')
+    preco = float(input('Preço: R$ '))
+    quantidade = float(input('Qual quantidade:'))
+    categoria = input('Tipo do produto:')
+    con = sqlite3.connect('ibex.db')
+    cursor = con.cursor()
+    cursor.execute("SELECT id FROM empresa WHERE login = ?", (empresa_logada,))
+    empresa_id = cursor.fetchone()[0]
+    sql = 'INSERT INTO produtos (nome, descricao, preco, quantidade, categoria, empresa_id) VALUES (?,?,?,?,?,?)'
+    cursor.execute(sql, (nome, descricao, preco, quantidade, categoria, empresa_id))
+    con.commit()
+    con.close()
+    print('Redirecionando...\n')
+    time.sleep(1)
+    print('PRODUTO CADASTRADO COM SUCESSO!\n')
+    input("Pressione ENTER para continuar...")
+
+
+def cad_cliente():
+    exibir_subtitulo('Cadastre-se agora!')
+    nome = input('Nome:')
+    senha = input('Crie uma Senha:')
+    login = input('E-mail:')
+    con = sqlite3.connect("ibex.db")
+    cursor = con.cursor()
+    sql = "INSERT INTO cliente (nome, senha, login) VALUES (?, ?, ?)"
+    cursor.execute(sql, (nome, senha, login))
+    con.commit()
+    con.close()
+    print('CADASTRADO COM SUCESSO!\n')
+    input("Pressione ENTER para continuar...")
+
+
+def login_cliente():
+    global cliente_logado
+    exibir_subtitulo('Realize seu login')
+    login = input('Digite seu E-mail:')
+    senha = input('Digite sua Senha:')
+    con = sqlite3.connect("ibex.db")
+    cursor = con.cursor()
+    cursor.execute("SELECT senha FROM cliente WHERE login = ?", (login,))
+    resultado = cursor.fetchone()
+    if resultado:
+        senha_correta = resultado[0]
+        if senha == senha_correta:
+            print('Senha Correta! Redirecionando...\n')
+            time.sleep(1)
+            cliente_logado = login
+            os.system('cls')
+            print("Login realizado com sucesso!\n")
+            time.sleep(1)
+            menu_cliente()
+        else:
+            time.sleep(1)
+            os.system('cls')
+            print("\nSenha incorreta.\n")
+            return
+
+    else:
+        print("Usuário não encontrado.\n")
+        return
+    con.close()
+    input("Pressione ENTER para continuar...")
+
+
+def adicionar_carrinho():
+    exibir_subtitulo('Adicione produto(s) ao carrinho')
+    if cliente_logado is None:
+        print("Você precisa estar logado como cliente para adicionar ao carrinho.")
+        input("Pressione ENTER para continuar...")
+        return
+
+    nome_produto = input("Digite o nome do produto: ")
+    con = sqlite3.connect("ibex.db")
+    cursor = con.cursor()
+
+    cursor.execute("SELECT id, nome, descricao, preco, quantidade FROM produtos WHERE nome LIKE ?", (f"%{nome_produto}%",))
+    produtos = cursor.fetchall()
+
+    if not produtos:
+        print("Produto não encontrado.")
+        con.close()
+        input("Pressione ENTER para continuar...")
+        return
+
+    for p in produtos:
+        print(f"ID: {p[0]} | Nome: {p[1]} | Marca: {p[2]} | Preço: R${p[3]:.2f} | Estoque: {p[4]}")
+
+    try:
+        produto_id = int(input("Digite o ID do produto: "))
+        quantidade = int(input("Digite a quantidade: "))
+    except ValueError:
+        print("Entrada inválida.")
+        con.close()
+        input("Pressione ENTER para continuar...")
+        return
+
+    cursor.execute("SELECT nome, preco, quantidade, empresa_id FROM produtos WHERE id = ?", (produto_id,))
+    produto = cursor.fetchone()
+
+    if not produto:
+        print("Produto não encontrado.")
+        con.close()
+        input("Pressione ENTER para continuar...")
+        return
+
+    nome, preco, estoque, empresa_id = produto
+    if quantidade > estoque:
+        print(f"Estoque insuficiente. Disponível: {estoque}")
+        con.close()
+        input("Pressione ENTER para continuar...")
+        return
+
+    cursor.execute("SELECT id FROM cliente WHERE login = ?", (cliente_logado,))
+    cliente = cursor.fetchone()
+    if not cliente:
+        print("Cliente não encontrado.")
+        con.close()
+        input("Pressione ENTER para continuar...")
+        return
+
+    id_cliente = cliente[0]
+
+    cursor.execute("""
+        SELECT id FROM carrinho_temp 
+        WHERE id_cliente = ? AND id_produto = ?
+    """, (id_cliente, produto_id))
+    existente = cursor.fetchone()
+
+    if existente:
+        cursor.execute("""
+            UPDATE carrinho_temp SET quantidade = quantidade + ?
+            WHERE id = ?
+        """, (quantidade, existente[0]))
+    else:
+        cursor.execute("""
+            INSERT INTO carrinho_temp (id_cliente, id_produto, nome_produto, quantidade, preco_unitario, id_empresa)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (id_cliente, produto_id, nome, quantidade, preco, empresa_id))
+
+    con.commit()
+    print(f"{quantidade}x {nome} adicionado ao carrinho.")
+    con.close()
+    input("Pressione ENTER para continuar...")
+
+
+def ver_carrinho():
+    exibir_subtitulo('Produtos no carrinho')
+
+    if cliente_logado is None:
+        print("Você precisa estar logado para ver o carrinho.")
+        input("Pressione ENTER para continuar...")
+        return
+
+    con = sqlite3.connect("ibex.db")
+    cursor = con.cursor()
+    cursor.execute("SELECT id FROM cliente WHERE login = ?", (cliente_logado,))
+    cliente = cursor.fetchone()
+    if not cliente:
+        print("Cliente não encontrado.")
+        con.close()
+        input("Pressione ENTER para continuar...")
+        return
+
+    id_cliente = cliente[0]
+    cursor.execute("""
+        SELECT id, nome_produto, quantidade, preco_unitario 
+        FROM carrinho_temp WHERE id_cliente = ?
+    """, (id_cliente,))
+    itens = cursor.fetchall()
+
+    if not itens:
+        print("Carrinho está vazio.")
+    else:
+        total = 0
+        for item in itens:
+            subtotal = item[2] * item[3]
+            print(f"{item[2]}x {item[1]} - R${item[3]:.2f} cada (Subtotal: R${subtotal:.2f})")
+            total += subtotal
+        print(f"\nTotal: R${total:.2f}")
+
+    con.close()
+    input("Pressione ENTER para continuar...")
+
+
+def remover_carrinho():
+    exibir_subtitulo('Remova produto(s) do carrinho')
+
+    if cliente_logado is None:
+        print("Você precisa estar logado para remover itens.")
+        input("Pressione ENTER para continuar...")
+        return
+
+    con = sqlite3.connect("ibex.db")
+    cursor = con.cursor()
+    cursor.execute("SELECT id FROM cliente WHERE login = ?", (cliente_logado,))
+    cliente = cursor.fetchone()
+    if not cliente:
+        print("Cliente não encontrado.")
+        con.close()
+        input("Pressione ENTER para continuar...")
+        return
+
+    id_cliente = cliente[0]
+    cursor.execute("""
+        SELECT id, nome_produto, quantidade FROM carrinho_temp WHERE id_cliente = ?
+    """, (id_cliente,))
+    itens = cursor.fetchall()
+
+    if not itens:
+        print("Carrinho está vazio.")
+        con.close()
+        input("Pressione ENTER para continuar...")
+        return
+
+    for idx, item in enumerate(itens, start=1):
+        print(f"{idx}. {item[1]} - {item[2]}x")
+
+    try:
+        escolha = int(input("Digite o número do item que deseja remover: "))
+        if 1 <= escolha <= len(itens):
+            id_item = itens[escolha - 1][0]
+            cursor.execute("DELETE FROM carrinho_temp WHERE id = ?", (id_item,))
+            con.commit()
+            print("Item removido do carrinho.")
+        else:
+            print("Opção inválida.")
+    except ValueError:
+        print("Entrada inválida.")
+
+    con.close()
+    input("Pressione ENTER para continuar...")
+
+#
+def finalizar_pedido():
+    global cliente_logado
+    exibir_subtitulo('Finalize seu pedido')
+
+    if cliente_logado is None:
+        print("Você precisa estar logado como cliente para finalizar o pedido.")
+        input("Pressione ENTER para continuar...")
+        return
+
+    # Obtem o ID do cliente
+    con = sqlite3.connect("ibex.db")
+    cursor = con.cursor()
+    cursor.execute("SELECT id FROM cliente WHERE login = ?", (cliente_logado,))
+    resultado = cursor.fetchone()
+    if not resultado:
+        print("Cliente não encontrado.")
+        con.close()
+        input("Pressione ENTER para continuar...")
+        return
+    id_cliente = resultado[0]
+
+    # Verifica se há itens no carrinho_temp
+    cursor.execute("SELECT * FROM carrinho_temp WHERE id_cliente = ?", (id_cliente,))
+    itens = cursor.fetchall()
+
+    if not itens:
+        print("Seu carrinho está vazio.")
+        con.close()
+        input("Pressione ENTER para continuar...")
+        return
+
+    # 1. BUSCAR ENDEREÇO POR CEP
+    cep = input("Digite seu CEP (somente números): ").strip()
+    try:
+        resposta = requests.get(f"https://viacep.com.br/ws/{cep}/json/")
+        dados = resposta.json()
+        if "erro" in dados:
+            print("CEP inválido.")
+            con.close()
+            input("Pressione ENTER para continuar...")
+            return
+        endereco = f"{dados['logradouro']}, {dados['bairro']}, {dados['localidade']}-{dados['uf']}, {dados['cep']}"
+        print("\nEndereço de entrega:")
+        print(endereco)
+    except:
+        print("Erro ao consultar o CEP.")
+        con.close()
+        input("Pressione ENTER para continuar...")
+        return
+
+    # 2. RESUMO DO PEDIDO
+    print("\nResumo do pedido:\n")
+    total = 0
+    for item in itens:
+        _, _, _, nome, qtd, preco, _ = item
+        subtotal = qtd * preco
+        print(f"{qtd}x {nome} - R${preco:.2f} (Subtotal: R${subtotal:.2f})")
+        total += subtotal
+
+    print(f"\nTotal do pedido: R${total:.2f}")
+    confirmar = input("\nDeseja confirmar o pedido? (s/n): ").lower()
+    if confirmar != 's':
+        print("Pedido cancelado.")
+        con.close()
+        input("Pressione ENTER para continuar...")
+        return
+
+    # 3. SALVAR EM TABELA FINAL DE PEDIDOS (aqui usaremos a tabela carrinho mesmo)
+    for item in itens:
+        _, id_cliente, id_produto, nome, qtd, preco, id_empresa = item
+        cursor.execute("""
+            INSERT INTO carrinho (id_cliente, id_produto, nome_produto, quantidade, preco_unitario, id_empresa)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (id_cliente, id_produto, nome, qtd, preco, id_empresa))
+
+    # 4. Limpa o carrinho_temp
+    cursor.execute("DELETE FROM carrinho_temp WHERE id_cliente = ?", (id_cliente,))
+    con.commit()
+    con.close()
+
+    print("\n✅ Pedido confirmado! Obrigado por comprar com o Ibex 🧱 🚚.")
+    print(f"📦 Endereço de entrega: {endereco}")
+    input("\nPressione ENTER para continuar...")
+
+#
+class Relatorio:
+    def __init__(self, db_path='ibex.db'):
+        self.db_path = db_path
+
+    def conectar(self):
+        con = sqlite3.connect(self.db_path)
+        con.execute("PRAGMA foreign_keys = ON")
+        return con, con.cursor()
+
+    def total_clientes(self):
+        con, cursor = self.conectar()
+        cursor.execute("SELECT COUNT(*) FROM cliente")
+        total = cursor.fetchone()[0]
+        con.close()
+        return total
+
+    def total_empresas(self):
+        con, cursor = self.conectar()
+        cursor.execute("SELECT COUNT(*) FROM empresa")
+        total = cursor.fetchone()[0]
+        con.close()
+        return total
+    
+    def produtos_por_empresa(self):
+        con, cursor = self.conectar()
+        cursor.execute("""
+        SELECT e.nome, COUNT(p.id) 
+        FROM empresa e 
+        LEFT JOIN produtos p ON e.id = p.empresa_id 
+        GROUP BY e.nome
+    """)
+        dados = cursor.fetchall()
+        con.close()
+        return dados
+
+    def total_produtos(self):
+        con, cursor = self.conectar()
+        cursor.execute("SELECT COUNT(*) FROM produtos")
+        total = cursor.fetchone()[0]
+        con.close()
+        return total
+
+    def estoque_baixo(self, limite=5):
+        con, cursor = self.conectar()
+        cursor.execute("SELECT nome, quantidade FROM produtos WHERE quantidade <= ?", (limite,))
+        dados = cursor.fetchall()
+        con.close()
+        return dados
+    
+#
+def gerar_relatorio():
+    exibir_subtitulo('Relátorio do sistema')
+    rel = Relatorio()
+
+    print("Relatório do sistema:\n")
+    print(f"Total de clientes: {rel.total_clientes()}")
+    print(f"Total de empresas: {rel.total_empresas()}")
+    print(f"Total de produtos: {rel.total_produtos()}\n")
+
+    print("Produtos por empresa:")
+    for nome, total in rel.produtos_por_empresa():
+        print(f"- {nome}: {total} produto(s)")
+
+    input("\nPressione ENTER para voltar...")
+
+#
+class HistoricoPedidos:
+    def __init__(self, cliente_login, db_path="ibex.db"):
+        self.cliente_login = cliente_login
+        self.db_path = db_path
+        self.cliente_id = self._buscar_id_cliente()
+
+    def _buscar_id_cliente(self):
+        con = sqlite3.connect(self.db_path)
+        cursor = con.cursor()
+        cursor.execute("SELECT id FROM cliente WHERE login = ?", (self.cliente_login,))
+        resultado = cursor.fetchone()
+        con.close()
+        return resultado[0] if resultado else None
+
+    def obter_pedidos(self):
+        if not self.cliente_id:
+            return []
+
+        con = sqlite3.connect(self.db_path)
+        cursor = con.cursor()
+        cursor.execute("""
+            SELECT nome_produto, quantidade, preco_unitario, id_empresa
+            FROM carrinho
+            WHERE id_cliente = ?
+        """, (self.cliente_id,))
+        pedidos = cursor.fetchall()
+        con.close()
+        return pedidos
+    
+#
+def historico_pedidos():
+    global cliente_logado
+    exibir_subtitulo('Histórico de pedidos: ')
+
+    if not cliente_logado:
+        print("Você precisa estar logado como cliente para ver os pedidos.")
+        input("Pressione ENTER para continuar...")
+        return
+
+    historico = HistoricoPedidos(cliente_logado)
+    pedidos = historico.obter_pedidos()
+
+    if not pedidos:
+        print("Nenhum pedido encontrado.")
+    else:
+        for idx, (nome, qtd, preco, empresa_id) in enumerate(pedidos, start=1):
+            print(f"{idx}. Produto: {nome}")
+            print(f"   Quantidade: {qtd}")
+            print(f"   Preço unitário: R${preco:.2f}")
+            print(f"   ID da empresa: {empresa_id}")
+            print("---------------------------")
+
+    input("Pressione ENTER para continuar...")
+
+#
+def adicionar_favorito():
+    global favoritos
+    exibir_subtitulo('Adicione produto(s) aos favoritos')
+
+    nome = input("Digite o nome do produto que deseja favoritar: ")
+
+    con = sqlite3.connect("ibex.db")
+    cursor = con.cursor()
+    cursor.execute("SELECT id, nome, descricao, preco FROM produtos WHERE nome LIKE ?", (f"%{nome}%",))
+    produtos = cursor.fetchall()
+
+    if produtos:
+        for p in produtos:
+            print(f"ID: {p[0]} | Nome: {p[1]} | Marca: {p[2]} | Preço: R${p[3]:.2f}")
+        try:
+            produto_id = int(input("Digite o ID do produto que deseja favoritar: "))
+            produto = next((p for p in produtos if p[0] == produto_id), None)
+            if produto:
+                favoritos[produto_id] = {
+                    "nome": produto[1],
+                    "descricao": produto[2],
+                    "preco": produto[3]
+                }
+                print(f"Produto '{produto[1]}' adicionado aos favoritos!")
+            else:
+                print("ID inválido.")
+        except ValueError:
+            print("Entrada inválida.")
+    else:
+        print("Nenhum produto encontrado.")
+    con.close()
+    input("Pressione ENTER para continuar...")
+
+#
+def ver_favoritos():
+    exibir_subtitulo('Seus favoritos')
+    if not favoritos:
+        print("Nenhum produto favoritado.")
+    else:
+        for f in favoritos.values():
+            print(f"- {f['nome']} | Marca: {f['descricao']} | Preço: R${f['preco']:.2f}")
+    input("\nPressione ENTER para voltar...")
+
+#
+def aceitar_pedido():
+    id_pedido = int(input('Digite o ID do pedido que deseja aceitar: '))
+    con = sqlite3.connect('ibex.db')
+    cursor = con.cursor()
+
+    cursor.execute('SELECT * FROM pedidos WHERE id = ? AND status = "pendente"', (id_pedido,))
+    if cursor.fetchone() is None:
+        print('Pedido não encontrado ou já aceito.')
+    else:
+        cursor.execute('''
+            UPDATE pedidos
+            SET status = "aceito", colaborador = ?
+            WHERE id = ?
+        ''', (colaborador_logado, id_pedido))
+        con.commit()
+        print('Pedido aceito com sucesso!')
+
+    con.close()
+
+#
+def ver_meus_pedidos():
+    con = sqlite3.connect('ibex.db')
+    cursor = con.cursor()
+
+    cursor.execute('''
+        SELECT pedidos.id, cliente.nome, pedidos.descricao, pedidos.status
+        FROM pedidos
+        JOIN cliente ON pedidos.cliente_id = cliente.id
+        WHERE colaborador = ?
+    ''', (colaborador_logado,))
+
+    pedidos = cursor.fetchall()
+    con.close()
+
+    if not pedidos:
+        print('Você ainda não aceitou nenhum pedido.')
+        return
+
+    print('\nMeus pedidos:')
+    for id, nome_cliente, descricao, status in pedidos:
+        print(f'ID: {id} | Cliente: {nome_cliente} | Descrição: {descricao} | Status: {status}')
+
+
+#
+def listar_pedidos_pendentes():
+    con = sqlite3.connect('ibex.db')
+    cursor = con.cursor()
+
+    cursor.execute('''
+        SELECT pedidos.id, cliente.nome, pedidos.descricao
+        FROM pedidos
+        JOIN cliente ON pedidos.cliente_id = cliente.id
+        WHERE pedidos.status = "pendente"
+    ''')
+
+    pedidos = cursor.fetchall()
+    con.close()
+
+    if not pedidos:
+        print('Nenhum pedido pendente.')
+        return
+
+    print('\nPedidos pendentes:')
+    for id, nome_cliente, descricao in pedidos:
+        print(f'ID: {id} | Cliente: {nome_cliente} | Descrição: {descricao}')
+
+def concluir_pedido():
+    id_pedido = int(input('Digite o ID do pedido que deseja marcar como concluído: '))
+    con = sqlite3.connect('ibex.db')
+    cursor = con.cursor()
+
+    cursor.execute('''
+        SELECT * FROM pedidos
+        WHERE id = ? AND colaborador_login = ? AND status = "aceito"
+    ''', (id_pedido, colaborador_logado))
+
+    if cursor.fetchone() is None:
+        print('Pedido não encontrado ou não está em andamento.')
+    else:
+        cursor.execute('''
+            UPDATE pedidos
+            SET status = "concluído"
+            WHERE id = ?
+        ''', (id_pedido,))
+        con.commit()
+        print('Pedido marcado como concluído.')
+
+    con.close()
+
+def solicitar_servicos():
+    global cliente_logado
+    if cliente_logado is None:
+        print("Você precisa estar logado para atualizar seus dados.")
+        input("Pressione ENTER para voltar...")
+        return
+    
+    opcao = 0
+    while opcao != 9:
+        exibir_subtitulo('Solicitação de Serviços')
+        print('1. Criar novo pedido')
+        print('2. Ver meus pedidos')
+        print('9. Sair')
+
+        try:
+            opcao = int(input('Escolha uma opção: '))
+        except ValueError:
+            print('Opção inválida! Digite um número.')
+            continue
+
+        if opcao == 1:
+            criar_pedido()
+        elif opcao == 2:
+            ver_pedidos_cliente()
+        elif opcao == 9:
+            print('Saindo do menu de serviços...')
+        else:
+            print('Opção inválida.')
+
+        input('\nPressione ENTER para continuar...')
+
+def criar_pedido():
+    descricao = input('Descreva o serviço que você precisa: ')
+    status = 'pendente'
+    con = sqlite3.connect('ibex.db')
+    cursor = con.cursor()
+
+    cursor.execute('SELECT id FROM cliente WHERE login = ?', (cliente_logado,))
+    resultado = cursor.fetchone()
+
+    if resultado:
+        cliente_id = resultado[0]
+        cursor.execute('''
+            INSERT INTO pedidos (cliente_id, descricao, status)
+            VALUES (?, ?, ?)
+        ''', (cliente_id, descricao, status))
+        con.commit()
+        print('Pedido criado com sucesso!')
+    else:
+        print('Erro: cliente não encontrado.')
+
+    con.close()
+
+def ver_pedidos_cliente():
+    con = sqlite3.connect('ibex.db')
+    cursor = con.cursor()
+    cursor.execute('SELECT id FROM cliente WHERE login = ?', (cliente_logado,))
+    resultado = cursor.fetchone()
+
+    if resultado:
+        cliente_id = resultado[0]
+
+        cursor.execute('''
+            SELECT id, descricao, status, colaborador
+            FROM pedidos
+            WHERE cliente_id = ?
+        ''', (cliente_id,))
+        pedidos = cursor.fetchall()
+
+        if not pedidos:
+            print('Você ainda não fez nenhum pedido.')
+        else:
+            print('\nSeus pedidos:')
+            for id, descricao, status, colaborador in pedidos:
+                print(f'ID: {id} | Descrição: {descricao} | Status: {status} | Colaborador: {colaborador}')
+    else:
+        print('Erro ao localizar cliente.')
+
+    con.close()
+
+
+opcao = 0 
+
+while opcao != 9:
+    menu_principal()
+    try:
+        opcao = int(input("Opção: "))
+    except ValueError:
+        print("Digite um número válido!")
+        time.sleep(1)
+        continue
+
+    if opcao == 1:
+        cad_cliente()
+    elif opcao == 2:
+        login_cliente()
+    elif opcao == 3:
+        cad_empresa()
+    elif opcao == 4:
+        login_empresa()
+    elif opcao == 5:
+        cad_colaborador()
+    elif opcao == 6:
+        login_colaborador()
+    elif opcao == 9:
+        finalizando_app()
+    else:
+        print("Opção inválida.")
+        time.sleep(1)
