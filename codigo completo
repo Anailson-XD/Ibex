@@ -56,6 +56,7 @@ def menu_cliente():
         print('5. Carrinho')
         print('6. Ver pedidos anteriores')
         print('7. Solicitar Serviços')
+        print('8. Favoritos')
         print('9. Sair')
         try:
             opcao = int(input("Opção: "))
@@ -76,10 +77,40 @@ def menu_cliente():
             historico_pedidos()
         elif opcao == 7:
             solicitar_servicos()
+        elif opcao == 8:
+            menu_favoritos()
         elif opcao not in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
             print('Opção inválida!')
             input("Pressione ENTER para continuar...")
 
+def menu_favoritos():
+    opcao = 0
+    while opcao != 9:
+        exibir_subtitulo('Menu Favoritos')
+        print('1. Adicionar produto aos favoritos')
+        print('2. Ver meus favoritos')
+        print('3. Remover produto dos favoritos')
+        print('9. Voltar')
+        
+        try:
+            opcao = int(input("Opção: "))
+        except ValueError:
+            print("Entrada inválida. Por favor, digite um número.")
+            input("Pressione ENTER para continuar...")
+            continue
+        
+        if opcao == 1:
+            adicionar_favorito()
+        elif opcao == 2:
+            ver_favoritos()
+        elif opcao == 3:
+            remover_favorito()
+        elif opcao == 9:
+            print("Voltando ao menu principal do cliente...")
+            time.sleep(1)
+        else:
+            print("Opção inválida!")
+            input("Pressione ENTER para continuar...")
 
 def menu_carrinho():
     opcao = 0
@@ -566,6 +597,77 @@ def ver_carrinho():
     con.close()
     input("Pressione ENTER para continuar...")
 
+def editar_carrinho():
+    exibir_subtitulo('Editar produtos do carrinho')
+
+    if cliente_logado is None:
+        print("Você precisa estar logado para editar o carrinho.")
+        input("Pressione ENTER para continuar...")
+        return
+
+    con = sqlite3.connect("ibex.db")
+    cursor = con.cursor()
+    cursor.execute("SELECT id FROM cliente WHERE login = ?", (cliente_logado,))
+    cliente = cursor.fetchone()
+
+    if not cliente:
+        print("Cliente não encontrado.")
+        con.close()
+        input("Pressione ENTER para continuar...")
+        return
+
+    id_cliente = cliente[0]
+    cursor.execute("""
+        SELECT id, nome_produto, quantidade, id_produto
+        FROM carrinho_temp WHERE id_cliente = ?
+    """, (id_cliente,))
+    itens = cursor.fetchall()
+
+    if not itens:
+        print("Carrinho está vazio.")
+        con.close()
+        input("Pressione ENTER para continuar...")
+        return
+
+    print("Seu carrinho:")
+    for idx, item in enumerate(itens, start=1):
+        print(f"{idx}. {item[1]} - {item[2]}x")
+
+    try:
+        escolha = int(input("\nDigite o número do item que deseja editar: "))
+        if 1 <= escolha <= len(itens):
+            item_escolhido = itens[escolha - 1]
+            id_carrinho_temp = item_escolhido[0]
+            id_produto = item_escolhido[3]
+
+            nova_quantidade = int(input(f"Digite a nova quantidade para '{item_escolhido[1]}': "))
+
+            if nova_quantidade <= 0:
+                # Se a nova quantidade for zero ou menor, remove o item
+                cursor.execute("DELETE FROM carrinho_temp WHERE id = ?", (id_carrinho_temp,))
+                con.commit()
+                print(f"Produto '{item_escolhido[1]}' removido do carrinho.")
+            else:
+                # Verifica o estoque do produto
+                cursor.execute("SELECT quantidade FROM produtos WHERE id = ?", (id_produto,))
+                estoque_disponivel = cursor.fetchone()[0]
+
+                if nova_quantidade > estoque_disponivel:
+                    print(f"Estoque insuficiente. Quantidade máxima disponível: {estoque_disponivel}.")
+                else:
+                    cursor.execute("""
+                        UPDATE carrinho_temp SET quantidade = ?
+                        WHERE id = ?
+                    """, (nova_quantidade, id_carrinho_temp))
+                    con.commit()
+                    print("Quantidade atualizada com sucesso!")
+        else:
+            print("Opção inválida.")
+    except ValueError:
+        print("Entrada inválida.")
+
+    con.close()
+    input("\nPressione ENTER para continuar...")
 
 def remover_carrinho():
     exibir_subtitulo('Remova produto(s) do carrinho')
@@ -864,6 +966,35 @@ def ver_favoritos():
         for f in favoritos.values():
             print(f"- {f['nome']} | Marca: {f['descricao']} | Preço: R${f['preco']:.2f}")
     input("\nPressione ENTER para voltar...")
+
+#
+def remover_favorito():
+    global favoritos
+    exibir_subtitulo('Remover dos favoritos')
+
+    if not favoritos:
+        print("Nenhum produto favoritado para remover.")
+    else:
+        # Mostra os favoritos com um número para fácil seleção
+        lista_favoritos = list(favoritos.keys())
+        print("Seus favoritos:")
+        for i, id_produto in enumerate(lista_favoritos, 1):
+            produto = favoritos[id_produto]
+            print(f"{i}. {produto['nome']} | Marca: {produto['descricao']} | Preço: R${produto['preco']:.2f}")
+
+        try:
+            escolha = int(input("\nDigite o número do item que deseja remover: "))
+            # Verifica se o número escolhido é válido
+            if 1 <= escolha <= len(lista_favoritos):
+                id_para_remover = lista_favoritos[escolha - 1]
+                produto_removido = favoritos.pop(id_para_remover)
+                print(f"Produto '{produto_removido['nome']}' removido dos favoritos com sucesso!")
+            else:
+                print("Opção inválida.")
+        except ValueError:
+            print("Entrada inválida. Por favor, digite um número.")
+    
+    input("\nPressione ENTER para continuar...")
 
 #
 def aceitar_pedido():
